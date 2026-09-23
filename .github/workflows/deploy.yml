@@ -1,0 +1,31 @@
+name: Deploy COLORS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency: deploy
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Sync site to /var/www/html
+        run: |
+          rsync -rvz --delete --no-perms --chmod=D755,F644 \
+            public/ "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/html/"
+
+      - name: Ensure database schema
+        run: |
+          ssh "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
+            "MYSQL_PWD='${{ secrets.DB_PASS }}' mysql -u TheBeast COP4331" < db/schema.sql
