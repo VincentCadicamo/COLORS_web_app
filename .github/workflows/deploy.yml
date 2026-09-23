@@ -20,7 +20,6 @@ jobs:
           mkdir -p ~/.ssh
           echo "$SSH_KEY_B64" | base64 -d > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keygen -lf ~/.ssh/id_ed25519 || echo "KEY DOES NOT PARSE"
           ssh-keygen -y -f ~/.ssh/id_ed25519 > /dev/null && echo "Key parses OK"
           ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
 
