@@ -15,7 +15,7 @@ jobs:
 
       - name: Set up SSH
         env:
-          SSH_KEY_B64: ${{ secrets.SSH_KEY_B64 }}
+          SSH_KEY_B64: ${{ secrets.SSH_KEY }}
         run: |
           mkdir -p ~/.ssh
           echo "$SSH_KEY_B64" | base64 -d > ~/.ssh/id_ed25519
