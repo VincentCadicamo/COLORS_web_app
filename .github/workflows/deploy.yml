@@ -15,10 +15,10 @@ jobs:
 
       - name: Set up SSH
         env:
-          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_KEY_B64: ${{ secrets.SSH_KEY_B64 }}
         run: |
           mkdir -p ~/.ssh
-          printf '%s\n' "$SSH_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
+          echo "$SSH_KEY_B64" | base64 -d > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keygen -y -f ~/.ssh/id_ed25519 > /dev/null && echo "Key parses OK"
           ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
