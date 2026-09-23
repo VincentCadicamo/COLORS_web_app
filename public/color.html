@@ -1,17 +1,19 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
+	<meta charset="UTF-8">
 	<title>COP 4331 LAMP Stack Demo</title>
 	<script type="text/javascript" src="js/code.js"></script>
-    <link href="css/styles.css" rel="stylesheet">	
-    <link href="https://fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet">
-	
+	<link href="css/styles.css" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet">
+
 	<script type="text/javascript">
-	document.addEventListener('DOMContentLoaded', function() 
+	document.addEventListener('DOMContentLoaded', function()
 	{
 		readCookie();
 	}, false);
 	</script>
-	
+
 </head>
 <body>
 
@@ -25,13 +27,13 @@
 <div id="accessUIDiv">
 	<br />
 
-	<input type="text" id="searchText" placeholder="Color To Search For"/>
+	<input type="text" id="searchText" placeholder="Color To Search For" aria-label="Color to search for"/>
 	<button type="button" id="searchColorButton" class="buttons" onclick="searchColor();"> Search Color </button><br />
 	<span id="colorSearchResult"></span>
 	<p id="colorList">
 	</p><br /><br />
 
-	<input type="text" id="colorText" placeholder="Color To Add">
+	<input type="text" id="colorText" placeholder="Color To Add" aria-label="Color to add"/>
 	<button type="button" id="addColorButton" class="buttons" onclick="addColor();"> Add Color </button><br />
 	<span id="colorAddResult"></span>
 </div>
