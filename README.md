@@ -1,53 +1,65 @@
 # COLORS (LAMP Stack Web App)
 
-A small web application built for the COP 4331 COLORS Lab. Users log in and
-can add colors to their personal list or search the colors they've saved.
-It demonstrates a basic client–server design: a static HTML/JS front end that
-calls a PHP JSON API backed by a MySQL database.
+A small web application built for the COP 4331 COLORS Lab. Users log in, then
+add colors to their personal list or search the colors saved to their account.
+Each user only sees colors tied to their own user ID. The app is a static
+HTML/CSS/JS front end calling a PHP JSON API backed by MySQL.
+
+Live at: https://colorslab.vincentcadicamo.dev
 
 ## Technologies
-- **Linux**: Ubuntu server (e.g., DigitalOcean droplet)
-- **Apache**: web server hosting the front end and API
-- **MySQL**: stores users and colors
-- **PHP**: REST-style JSON endpoints
-- **HTML / CSS / JavaScript**: front end (vanilla JS, `fetch`/XHR, MD5 hashing)
+- **Linux**: Ubuntu VM on Google Cloud Platform
+- **Apache**: serves the front end and PHP API over HTTPS
+- **MySQL**: `COP4331` database (`Users`, `Colors`, `Contacts` tables)
+- **PHP**: JSON endpoints using `mysqli` prepared statements
+- **HTML / CSS / JavaScript**: vanilla JS front end; `md5.js` (MIT, Sebastian Tschan)
+- **GitHub Actions**: deploys `public/` to the server via rsync
 
 ## Project Structure
 ```
-api/        PHP endpoints (Login, AddColor, SearchColors)
-public/     Static front end (HTML, CSS, JS)
-database/   SQL schema for the Users and Colors tables
+.github/workflows/deploy.yml   CI deploy to the GCP server
+db/bootstrap.sql               Creates the database and API user
+db/schema.sql                  Tables and seed data (safe to re-run)
+public/                        Web root
+  index.html                   Login page
+  color.html                   Add/search colors page
+  css/  js/  images/
+  LAMPAPI/                     PHP API endpoints
+    config.example.php         Credential template (copy to config.php)
 ```
 
 ## API Endpoints
-| Endpoint | Method | Request body | Response |
-|---|---|---|---|
-| `api/Login.php` | POST | `{ "login", "password" }` | `{ "id", "firstName", "lastName", "error" }` |
-| `api/AddColor.php` | POST | `{ "color", "userId" }` | `{ "error" }` |
-| `api/SearchColors.php` | POST | `{ "search", "userId" }` | `{ "results": [...], "error" }` |
+All endpoints accept and return JSON via POST under `/LAMPAPI/`.
+
+| Endpoint | Request body | Response |
+|---|---|---|
+| `Login.php` | `{ "login", "password" }` | `{ "id", "firstName", "lastName", "error" }` |
+| `AddColor.php` | `{ "color", "userId" }` | `{ "error" }` |
+| `SearchColors.php` | `{ "search", "userId" }` | `{ "results": [...], "error" }` |
 
 ## Setup
-1. Provision a LAMP server (Apache, MySQL, PHP installed).
-2. Create the database and tables:
+1. Provision an Ubuntu server with Apache, MySQL, and PHP (`php-mysql`).
+2. Edit `db/bootstrap.sql` to set a password for the API user, then run:
 ```bash
-   mysql -u root -p < database/schema.sql
+   sudo mysql < db/bootstrap.sql
+   sudo mysql COP4331 < db/schema.sql
 ```
-3. Create a MySQL user with access to the database.
-4. Copy the config template and add your credentials:
+3. Create the server config (never committed):
 ```bash
-   cp api/config.example.php api/config.php
+   cp public/LAMPAPI/config.example.php public/LAMPAPI/config.php
 ```
-5. Copy `public/` and `api/` to the web root (e.g., `/var/www/html/`).
-6. In `public/js/code.js`, set the API base URL to your server's domain or IP.
+and fill in the database credentials.
+4. Deploy `public/` to `/var/www/html/`, either manually or via the GitHub
+   Actions workflow (requires repository secrets for the host, user, and SSH key).
+5. In `public/js/code.js`, set `urlBase` to your own domain.
 
 ## Running / Accessing
-Open `http://<your-server-ip-or-domain>/` in a browser, log in with a user
-from the `Users` table, then add or search colors.
+Open `https://colorslab.vincentcadicamo.dev/`, log in with a user from the `Users` table
+(seed data in `db/schema.sql`), then add or search colors.
 
 ## Assumptions & Limitations
-- Users are created directly in the database; there is no sign-up page.
-- Passwords are hashed client-side with MD5, which is not secure for
-  production use (no salting, weak algorithm).
-- Sessions use a simple browser cookie, not server-side session management.
-- Intended to run over HTTP for the lab; production would need HTTPS.
-- No edit or delete functionality for colors.
+- There is no sign-up page; users are created in the database.
+- Login state is a browser cookie (20 min), not a server-side session.
+- No edit or delete for colors.
+- An empty search returns an error payload rather than a clean "no results" message.
+- The `Contacts` table is created but not used by this lab.
