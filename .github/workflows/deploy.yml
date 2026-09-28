@@ -26,6 +26,7 @@ jobs:
       - name: Sync site to /var/www/html
         run: |
           rsync -rvz --delete --no-perms --chmod=D755,F644 \
+            --exclude 'LAMPAPI/config.php' \
             public/ "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/html/"
 
       - name: Ensure database schema
