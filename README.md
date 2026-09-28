@@ -64,3 +64,6 @@ Open `https://colorslab.vincentcadicamo.dev/`, log in with a user from the `User
 - An empty search returns an error payload rather than a clean "no results" message.
 - The `Contacts` table is created but not used by this lab.
 - MD5 hashing in `code.js` is commented out, so passwords are sent and stored in plaintext; not suitable for production.
+
+## License
+Released under the [MIT License](LICENSE). `public/js/md5.js` is © Sebastian Tschan, also MIT.
