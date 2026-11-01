@@ -1,0 +1,105 @@
+@startuml activity
+
+title COLORS Web Application - Activity Diagram (User Session)
+skinparam shadowing false
+skinparam ActivityBorderColor #555555
+skinparam ActivityDiamondBackgroundColor #FFFFFF
+skinparam ActivityDiamondBorderColor #555555
+skinparam ArrowColor #333333
+
+!$U = "#FFF3CD"
+!$B = "#D6EAF8"
+!$P = "#D5F5E3"
+!$D = "#F5D5E8"
+
+legend top right
+  |= Color |= Performed by |
+  |<back:#FFF3CD>      </back>| User |
+  |<back:#D6EAF8>      </back>| Browser (HTML + code.js) |
+  |<back:#D5F5E3>      </back>| PHP API (LAMPAPI) |
+  |<back:#F5D5E8>      </back>| MySQL (COP4331) |
+endlegend
+
+start
+
+partition "Log In (index.html)" {
+  $U:Open index.html, enter username and password;
+  $U:Click "Do It";
+  $B:doLogin(): reset userId, firstName, lastName;
+  $B:POST {login, password} to Login.php;
+  $P:Login.php connects using config.php;
+  if (DB connection OK?) then (yes)
+    $D:SELECT ID, firstName, lastName FROM Users
+    WHERE Login = ? AND Password = ?;
+    if (row found?) then (yes)
+      $P:Return {id, firstName, lastName, error: ''};
+    else (no)
+      $P:Return {id: 0, error: 'No Records Found'};
+    endif
+  else (no)
+    $P:Return {id: 0, error: <connect error>};
+  endif
+  if (id < 1?) then (yes)
+    $B:Show "User/Password combination incorrect";
+    stop
+  else (no)
+    $B:saveCookie(): firstName, lastName, userId
+    (expires in 20 min);
+    $B:Redirect to color.html;
+  endif
+}
+
+partition "Session check (color.html)" {
+  $B:readCookie() on DOMContentLoaded;
+  if (userId found in cookie?) then (no)
+    $B:Redirect to index.html;
+    stop
+  else (yes)
+    $B:Show "Logged in as <firstName> <lastName>";
+  endif
+}
+
+repeat
+  $U:Choose an action;
+  switch (action?)
+  case (Search Color)
+    $U:Type search text,
+    click "Search Color";
+    $B:searchColor(): POST to SearchColors.php
+    with {search, userId};
+    $P:Build pattern '%' + search + '%';
+    $D:SELECT Name FROM Colors
+    WHERE Name LIKE ? AND UserID = ?;
+    if (matches > 0?) then (yes)
+      $P:Return {results: [names],
+      error: ''};
+      $B:Show "Color(s) has been retrieved";
+      $B:Render names in #colorList;
+    else (no)
+      $P:Return {id: 0, error: 'No Records Found'};
+      $B:Show "Color(s) has been retrieved";
+      $B:Color list is not updated;
+    endif
+  case (Add Color)
+    $U:Type color name,
+    click "Add Color";
+    $B:addColor(): POST to AddColor.php
+    with {color, userId};
+    if (DB connection OK?) then (yes)
+      $D:INSERT INTO Colors (UserId, Name)
+      VALUES (?, ?);
+      $P:Return {error: ''};
+    else (no)
+      $P:Return {error: <connect error>};
+    endif
+    $B:Show "Color has been added";
+  case (Log Out)
+    $U:Click "Log Out";
+    $B:doLogout(): clear variables,
+    expire cookie;
+    $B:Redirect to index.html;
+  endswitch
+repeat while (Logged out?) is (no) not (yes)
+
+stop
+@enduml

@@ -1,0 +1,162 @@
+@startuml class
+
+title COLORS Web Application - Class Diagram
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam nodesep 50
+skinparam ranksep 90
+hide empty members
+left to right direction
+
+package "Client (browser)" {
+  class "index.html" as IndexPage <<page>> {
+    loginName : text input
+    loginPassword : password input
+    loginButton : button
+    loginResult : span
+  }
+
+  class "color.html" as ColorPage <<page>> {
+    userName : span
+    logoutButton : button
+    searchText : text input
+    searchColorButton : button
+    colorSearchResult : span
+    colorList : p
+    colorText : text input
+    addColorButton : button
+    colorAddResult : span
+  }
+
+  class "md5.js" as MD5 <<library>> {
+    +md5(string) : string
+  }
+
+  class "code.js" as CodeJS <<script>> {
+    -urlBase : const string
+    -extension : const string = 'php'
+    -userId : int = 0
+    -firstName : string
+    -lastName : string
+    +doLogin() : void
+    +saveCookie() : void
+    +readCookie() : void
+    +doLogout() : void
+    +addColor() : void
+    +searchColor() : void
+  }
+
+  class "Session Cookie" as Cookie <<cookie>> {
+    firstName : string
+    lastName : string
+    userId : int
+    expires : now + 20 min
+  }
+}
+
+package "Server: LAMPAPI endpoints (PHP)" as EP {
+  class "SearchColors.php" as SearchPHP <<endpoint>> {
+    .. JSON request ..
+    search : string
+    userId : int
+    .. JSON response ..
+    results : string[]
+    error : string
+    __ functions __
+    +getRequestInfo() : array
+    +sendResultInfoAsJson(obj) : void
+    +returnWithError(err) : void
+    +returnWithInfo(searchResults) : void
+  }
+
+  class "AddColor.php" as AddColorPHP <<endpoint>> {
+    .. JSON request ..
+    color : string
+    userId : int
+    .. JSON response ..
+    error : string
+    __ functions __
+    +getRequestInfo() : array
+    +sendResultInfoAsJson(obj) : void
+    +returnWithError(err) : void
+  }
+
+  class "Login.php" as LoginPHP <<endpoint>> {
+    .. JSON request ..
+    login : string
+    password : string
+    .. JSON response ..
+    id : int
+    firstName : string
+    lastName : string
+    error : string
+    __ functions __
+    +getRequestInfo() : array
+    +sendResultInfoAsJson(obj) : void
+    +returnWithError(err) : void
+    +returnWithInfo(firstName, lastName, id) : void
+  }
+
+}
+
+package "Database: COP4331 (MySQL)" {
+  class Users <<table>> {
+    +ID : INT <<PK, auto>>
+    FirstName : VARCHAR(50)
+    LastName : VARCHAR(50)
+    Login : VARCHAR(50)
+    Password : VARCHAR(50)
+  }
+
+  class Colors <<table>> {
+    +ID : INT <<PK, auto>>
+    Name : VARCHAR(50)
+    UserID : INT
+  }
+
+  class Contacts <<table>> {
+    +ID : INT <<PK, auto>>
+    FirstName : VARCHAR(50)
+    LastName : VARCHAR(50)
+    Phone : VARCHAR(50)
+    Email : VARCHAR(50)
+    UserID : INT
+  }
+}
+
+package "Server: LAMPAPI config" as CFG {
+  class "config.php" as Config <<config>> {
+    DB_HOST : const
+    DB_USER : const
+    DB_PASS : const
+    DB_NAME : const = 'COP4331'
+  }
+}
+
+' --- Client-side dependencies ---
+IndexPage ..> CodeJS : <<include>>
+ColorPage ..> CodeJS : <<include>>
+IndexPage ..> MD5 : <<include>>
+CodeJS ..> Cookie : writes / reads\n/ expires
+
+' --- layout hints (invisible) ---
+
+' --- HTTP POST calls (XMLHttpRequest) ---
+CodeJS ..> LoginPHP : POST
+CodeJS ..> SearchPHP : POST
+CodeJS ..> AddColorPHP : POST
+
+' --- Server-side dependencies ---
+LoginPHP ..> Users : SELECT
+SearchPHP ..> Colors : SELECT ... LIKE
+AddColorPHP ..> Colors : INSERT
+
+EP ..> CFG : require_once\n(every endpoint)
+
+' --- Data relationships ---
+Config -[hidden] Users
+Users "1" - "0..*" Colors : owns
+Users "1" -- "0..*" Contacts : owns
+
+@enduml

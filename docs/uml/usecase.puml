@@ -1,0 +1,42 @@
+@startuml usecase
+
+title COLORS Web Application - Use Case Diagram
+left to right direction
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam usecase {
+  BackgroundColor #F5F9FF
+  BorderColor #3B6EA8
+}
+skinparam actorStyle awesome
+
+actor "Registered User" as User
+actor "MySQL Database\n(COP4331)" as DB <<system>>
+
+rectangle "COLORS Web Application" {
+  usecase "Log In" as UC_Login
+  usecase "Authenticate\nCredentials" as UC_Auth
+  usecase "Show Login Error\n(User/Password combination incorrect)" as UC_LoginErr
+
+  usecase "Verify Session\n(read cookie)" as UC_Session
+  usecase "Search Colors" as UC_Search
+  usecase "Add Color" as UC_Add
+  usecase "Log Out" as UC_Logout
+}
+
+User --> UC_Login
+User --> UC_Search
+User --> UC_Add
+User --> UC_Logout
+
+UC_Login ..> UC_Auth : <<include>>
+UC_LoginErr .> UC_Login : <<extend>>\n[no matching user]
+
+UC_Search ..> UC_Session : <<include>>
+UC_Add ..> UC_Session : <<include>>
+
+UC_Auth --> DB
+UC_Search --> DB
+UC_Add --> DB
+
+@enduml
