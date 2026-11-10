@@ -1,0 +1,21 @@
+{
+  "name": "colors-web-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Linting toolchain for the COLORS LAMP web app. Node.js is used only for linting, not for running the app.",
+  "license": "MIT",
+  "scripts": {
+    "lint": "npm run lint:html && npm run lint:css && npm run lint:js",
+    "lint:html": "htmlhint \"public/**/*.html\"",
+    "lint:css": "stylelint \"public/css/**/*.css\"",
+    "lint:js": "eslint ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.0.0",
+    "globals": "^17.0.0",
+    "htmlhint": "^1.9.0",
+    "stylelint": "^17.0.0",
+    "stylelint-config-standard": "^40.0.0"
+  }
+}
